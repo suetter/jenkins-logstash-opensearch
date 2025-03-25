@@ -1,0 +1,17 @@
+input {
+  file {
+    path => "/var/jenkins_home/jobs/*/builds/*/log"
+    start_position => "beginning"
+    sincedb_path => "/dev/null"
+  }
+}
+
+output {
+  opensearch {
+    hosts => ["https://opensearch-node1:9200"]
+    index => "jenkins-build-logs-%{+YYYY.MM.dd}"
+    user => "admin"   # Login
+    password => "ASDertsdf145*"  # Mot de passe
+    ssl_certificate_verification => false
+  }
+}
