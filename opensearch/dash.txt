@@ -1,0 +1,1 @@
+<iframe src="http://localhost:5601/app/dashboards?security_tenant=global#/view/a670d800-0cc1-11f0-8a25-e9eb77797823?embed=true&_g=(filters%3A!()%2CrefreshInterval%3A(pause%3A!t%2Cvalue%3A0)%2Ctime%3A(from%3Anow-30d%2Cto%3Anow))" height="600" width="800"></iframe>
