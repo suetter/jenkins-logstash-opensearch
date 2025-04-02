@@ -1,17 +1,48 @@
 input {
   file {
-    path => "/var/jenkins_home/jobs/*/builds/*/log"
+    path => "/home/jobs/PWC-V4/jobs/*/branchs/*/builds/*/log"
     start_position => "beginning"
-    sincedb_path => "/dev/null"
+    sincedb_path => "/home/sincedb"
+    codec => multiline {
+      pattern => "^(FAILURE: Build failed with an exception.|Terminated \(137\)|Finished: SUCCESS)"
+      negate => "true"
+      what => "previous"
+      auto_flush_interval => 5
+    }
   }
 }
-
+filter {
+  dissect {
+    mapping => { "[log][file][path]" => "/home/jobs/PWC-V4/jobs/%{project_name}/branchs/%{branch}/builds/%{build_id}/log" }
+  }
+  if [message] =~ /FAILURE: Build failed with an exception/ {
+    mutate {
+      add_field => { "build_status" => "failed" }
+      add_field => { "error_type" => "build error" }
+    }
+  } else if [message] =~ /Terminated \(137\)/ {
+    mutate {
+      add_field => { "build_status" => "failed" }
+      add_field => { "error_type" => "Out of memory" }
+    }
+  } else if [message] =~ /Finished: SUCCESS/ {
+    mutate {
+      add_field => { "build_status" => "success" }
+      add_field => { "error_type" => "-" }
+    }
+  }
+  mutate {
+    remove_field => ["event"]
+  }
+}
 output {
-  opensearch {
-    hosts => ["https://opensearch-node1:9200"]
-    index => "jenkins-build-logs-%{+YYYY.MM.dd}"
-    user => "admin"   # Login
-    password => "ASDertsdf145*"  # Mot de passe
-    ssl_certificate_verification => false
+  if [build_status] == "failed" or [build_status] == "success" {
+    opensearch {
+      hosts => ["https://opensearch-node1:9200"]
+      index => "jenkins-build-logs-%{+YYYY.MM.dd}"
+      user => "admin"
+      password => "ASDertsdf145*"
+      ssl_certificate_verification => false
+    }
   }
 }
